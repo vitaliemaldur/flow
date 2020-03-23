@@ -1,10 +1,15 @@
 {
   "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
+    "babel-loader": "^8.1.0",
+    "copy-webpack-plugin": "^5.1.1",
     "web-ext": "^4.1.0",
-    "webextension-polyfill": "^0.6.0"
+    "webextension-polyfill": "^0.6.0",
+    "webpack": "^4.42.0",
+    "webpack-cli": "^3.3.11"
   },
   "scripts": {
-    "start:firefox": "web-ext run -t --firefox=firefoxdeveloperedition",
-    "start:chrome": "web-ext run -t chromium"
+    "dev": "npx webpack --config webpack.config.js"
   }
 }
