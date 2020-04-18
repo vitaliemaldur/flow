@@ -4,7 +4,8 @@ const CopyPlugin = require('copy-webpack-plugin');
 module.exports = {
   entry: {
     'background':  './src/background-scripts/background.js',
-    'browser-action': './src/browser-action/index.jsx'
+    'browser-action': './src/browser-action/index.jsx',
+    'options': './src/options/index.jsx',
   },
   watch: true,
   output: {
@@ -20,6 +21,7 @@ module.exports = {
         options: {
           presets: ['@babel/preset-env'],
           plugins: [
+            ['@babel/plugin-transform-runtime'],
             ['@babel/plugin-transform-react-jsx', { pragma: 'h' }]
           ],
         }
@@ -31,7 +33,8 @@ module.exports = {
       { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js' },
       { from: 'src/manifest.json', to: 'manifest.json' },
       { from: 'src/assets/icons', to: 'icons' },
-      { from: 'src/browser-action/index.html', to: 'browser-action.html'  }
+      { from: 'src/browser-action/index.html', to: 'browser-action.html' },
+      { from: 'src/options/index.html', to: 'options.html' }
     ]),
   ],
   resolve: {

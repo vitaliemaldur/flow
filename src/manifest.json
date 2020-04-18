@@ -13,10 +13,21 @@
       "browser-polyfill.js",
       "background.js"
     ],
-    "persistent": false
+    "persistent": true
   },
 
   "browser_action": {
     "default_popup": "browser-action.html"
-  }
+  },
+
+  "options_ui": {
+    "page": "options.html"
+  },
+
+  "permissions": [
+    "tabs",
+    "<all_urls>",
+    "webRequest",
+    "webRequestBlocking"
+  ]
 }
