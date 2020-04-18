@@ -1,15 +1,11 @@
-import { h, Component } from 'preact';
+import { h } from 'preact';
 
-class BrowserAction extends Component {
-  render() {
-    return (
-      <div id="app-root">
-        <h1>Flow</h1>
-        <button>Activate deep work</button>
-        <a onClick={() => browser.runtime.openOptionsPage() } >Settings</a>
-      </div>
-    );
-  }
+export default function BrowserAction() {
+  return (
+    <div id="app-root">
+      <h1>Flow</h1>
+      <button type="button">Activate deep work</button>
+      <button type="button" onClick={() => browser.runtime.openOptionsPage()}>Settings</button>
+    </div>
+  );
 }
-
-export default BrowserAction;

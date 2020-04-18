@@ -1,9 +1,5 @@
-import { h, Component } from 'preact';
+import { h } from 'preact';
 
-class BrowserAction extends Component {
-  render() {
-    return <div id="app-root"><h1>Options page</h1></div>
-  }
+export default function BrowserAction() {
+  return <div id="app-root"><h1>Options page</h1></div>;
 }
-
-export default BrowserAction;

@@ -1,0 +1,18 @@
+{
+  "extends": [
+    "airbnb"
+  ],
+  "rules": {
+    "react/react-in-jsx-scope": "off"
+  },
+  "parser": "babel-eslint",
+  "globals": {
+    "browser": "readonly",
+    "document": "readonly"
+  },
+  "settings": {
+    "react": {
+      "pragma": "h"
+    }
+  }
+}
