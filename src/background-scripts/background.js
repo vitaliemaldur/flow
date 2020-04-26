@@ -2,8 +2,8 @@ import Url from 'url-parse';
 
 class BlockEngine {
   constructor() {
-    this.blacklist = ['facebook.com', 'sport.ro'];
-    this.redirectUrl = 'https://38.media.tumblr.com/tumblr_ldbj01lZiP1qe0eclo1_500.gif';
+    this.blacklist = new Set();
+    this.redirectUrl = browser.runtime.getURL('blocked-page.html');
   }
 
   redirectListener = () => ({
@@ -12,12 +12,12 @@ class BlockEngine {
 
   async init() {
     const result = await browser.storage.local.get('blacklist');
-    this.blacklist = result.blacklist || this.blacklist;
+    this.blacklist = new Set(result.blacklist) || this.blacklist;
     await this.applyBlacklist();
   }
 
   async applyBlacklist() {
-    if (this.blacklist.length === 0) {
+    if (this.blacklist.size === 0) {
       return;
     }
 
@@ -46,8 +46,8 @@ class BlockEngine {
   async blockWebsite(url) {
     const parsedUrl = new Url(url);
     // save new url
-    this.blacklist.append(parsedUrl.hostname);
-    await browser.storage.local.set('blacklist', this.blacklist);
+    this.blacklist.add(parsedUrl.hostname);
+    await browser.storage.local.set({ blacklist: Array.from(this.blacklist) });
     // update listeners
     await this.applyBlacklist();
   }
@@ -62,7 +62,7 @@ engine.init().then(() => {
 browser.runtime.onMessage.addListener(
   (data) => {
     if (data.type === 'blacklist.add') {
-      return Promise.resolve('done');
+      engine.blockWebsite(data.params);
     }
     return Promise.resolve('ok');
   },

@@ -16,13 +16,14 @@
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-react": "^7.19.0",
     "eslint-plugin-react-hooks": "2.5.0",
-    "web-ext": "^4.1.0",
+    "web-ext": "^4.2.0",
     "webextension-polyfill": "^0.6.0",
     "webpack": "^4.42.0",
     "webpack-cli": "^3.3.11"
   },
   "scripts": {
-    "dev": "npx webpack --config webpack.config.js --watch"
+    "dev": "npx webpack --config webpack.config.js --watch",
+    "start:firefox": "npx web-ext run --target=firefox-desktop --firefox=firefoxdeveloperedition"
   },
   "dependencies": {
     "preact": "^10.3.4",

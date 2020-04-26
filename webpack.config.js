@@ -8,8 +8,9 @@ const SRC_DIR = path.resolve(__dirname, 'src');
 module.exports = {
   entry: {
     background: `${SRC_DIR}/background-scripts/background.js`,
-    'browser-action': `${SRC_DIR}/browser-action/index.jsx`,
     options: `${SRC_DIR}/options/index.jsx`,
+    'browser-action': `${SRC_DIR}/browser-action/index.jsx`,
+    'blocked-page': `${SRC_DIR}/blocked-page/index.jsx`,
   },
   output: {
     filename: '[name].js',
@@ -52,6 +53,7 @@ module.exports = {
       { from: 'src/assets/icons', to: 'icons' },
       { from: 'src/browser-action/index.html', to: 'browser-action.html' },
       { from: 'src/options/index.html', to: 'options.html' },
+      { from: 'src/blocked-page/index.html', to: 'blocked-page.html' },
     ]),
   ],
   resolve: {

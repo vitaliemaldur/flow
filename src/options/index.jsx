@@ -1,4 +1,4 @@
 import { h, render } from 'preact';
-import BrowserAction from '../components/BrowserAction';
+import OptionsPage from '../components/OptionsPage';
 
-render(<BrowserAction />, document.body);
+render(<OptionsPage />, document.body);
