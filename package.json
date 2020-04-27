@@ -27,7 +27,6 @@
   },
   "dependencies": {
     "preact": "^10.3.4",
-    "preact-compat": "^3.19.0",
-    "url-parse": "^1.4.7"
+    "preact-compat": "^3.19.0"
   }
 }

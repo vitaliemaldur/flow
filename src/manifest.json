@@ -28,5 +28,10 @@
     "<all_urls>",
     "webRequest",
     "webRequestBlocking"
+  ],
+
+  "web_accessible_resources": [
+    "blocked-page.html",
+    "blocked-page.js"
   ]
 }

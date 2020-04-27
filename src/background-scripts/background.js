@@ -1,8 +1,8 @@
-import Url from 'url-parse';
 
 class BlockEngine {
   constructor() {
     this.blacklist = new Set();
+    this.pomodoroFinishTimestamp = Math.floor(Date.now() / 1000);
     this.redirectUrl = browser.runtime.getURL('blocked-page.html');
   }
 
@@ -11,12 +11,18 @@ class BlockEngine {
   })
 
   async init() {
-    const result = await browser.storage.local.get('blacklist');
+    const result = await browser.storage.local.get(['blacklist', 'pomodoro']);
+    this.pomodoroFinishTimestamp = result.pomodoro || this.pomodoroFinishTimestamp;
     this.blacklist = new Set(result.blacklist) || this.blacklist;
-    await this.applyBlacklist();
+    await this.startBlocking();
   }
 
-  async applyBlacklist() {
+  async startBlocking() {
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    if (currentTimestamp >= this.pomodoroFinishTimestamp) {
+      return;
+    }
+
     if (this.blacklist.size === 0) {
       return;
     }
@@ -41,15 +47,28 @@ class BlockEngine {
       { urls: patterns, types: ['main_frame'] },
       ['blocking'],
     );
+
+    // remove listener after pomodoro is finished
+    setTimeout(() => {
+      browser.webRequest.onBeforeRequest.removeListener(this.redirectListener);
+    }, (this.pomodoroFinishTimestamp - currentTimestamp) * 1000);
+  }
+
+  async startPomodoro(durationInMinutes) {
+    this.pomodoroFinishTimestamp = Math.floor(Date.now() / 1000) + durationInMinutes * 60;
+    await browser.storage.local.set({ pomodoro: this.pomodoroFinishTimestamp });
+    await this.startBlocking();
   }
 
   async blockWebsite(url) {
-    const parsedUrl = new Url(url);
+    const parsedUrl = new URL(url);
     // save new url
-    this.blacklist.add(parsedUrl.hostname);
-    await browser.storage.local.set({ blacklist: Array.from(this.blacklist) });
-    // update listeners
-    await this.applyBlacklist();
+    if (parsedUrl.hostname && parsedUrl.hostname.length > 0) {
+      this.blacklist.add(parsedUrl.hostname);
+      await browser.storage.local.set({ blacklist: Array.from(this.blacklist) });
+    } else {
+      throw new Error('Invalid URL');
+    }
   }
 }
 
@@ -61,8 +80,19 @@ engine.init().then(() => {
 
 browser.runtime.onMessage.addListener(
   (data) => {
-    if (data.type === 'blacklist.add') {
-      engine.blockWebsite(data.params);
+    try {
+      switch (data.type) {
+        case 'blacklist.add':
+          engine.blockWebsite(data.params);
+          break;
+        case 'pomodoro.set':
+          engine.startPomodoro(data.params);
+          break;
+        default:
+          break;
+      }
+    } catch (e) {
+      return Promise.resolve('error');
     }
     return Promise.resolve('ok');
   },

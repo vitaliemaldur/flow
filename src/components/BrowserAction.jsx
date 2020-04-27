@@ -1,28 +1,24 @@
-import { h, Component, Fragment } from 'preact';
-import Url from 'url-parse';
+import { h, Component } from 'preact';
 
 export default class BrowserAction extends Component {
   constructor(props) {
     super(props);
     this.state = {
       initialized: false,
-      currentUrl: null,
-      blacklist: [],
+      pomodoroFinishTimestamp: Math.floor(Date.now() / 1000),
     };
   }
 
   async componentDidMount() {
-    const result = await browser.storage.local.get('blacklist');
-    const tabs = await browser.tabs.query({ active: true });
+    const result = await browser.storage.local.get('pomodoro');
     this.setState({
       initialized: true,
-      currentUrl: tabs.length === 1 ? tabs[0].url : null,
-      blacklist: result.blacklist || [],
+      pomodoroFinishTimestamp: result.pomodoro,
     });
 
     browser.storage.onChanged.addListener((changes, area) => {
-      if (area === 'local' && changes.blacklist) {
-        this.setState({ blacklist: changes.blacklist.newValue });
+      if (area === 'local' && changes.pomodoro) {
+        this.setState({ pomodoroFinishTimestamp: changes.pomodoro.newValue });
       }
     });
   }
@@ -32,46 +28,44 @@ export default class BrowserAction extends Component {
     if (tabs.length === 0) {
       return;
     }
-
+    // TODO: validate URL
     browser.runtime.sendMessage({
       type: 'blacklist.add',
       params: tabs[0].url,
     });
   };
 
+  setPomodoro = async () => {
+    browser.runtime.sendMessage({
+      type: 'pomodoro.set',
+      params: 10,
+    });
+  };
+
   render() {
-    const { initialized, currentUrl, blacklist } = this.state;
-
-    let content = (
-      <Fragment>
-        <div>Loading</div>
-      </Fragment>
-    );
-
-    let isBlocked = false;
+    const { initialized, pomodoroFinishTimestamp } = this.state;
+    let secondsLeft = pomodoroFinishTimestamp - Math.floor(Date.now() / 1000);
     if (initialized) {
-      const url = new Url(currentUrl);
-      isBlocked = blacklist.indexOf(url.hostname) > -1;
-      content = (
-        <Fragment>
-          <div>
-            <button type="button" onClick={this.blockWebsite}>
-              { !isBlocked ? 'Block website' : 'Unblock website' }
-            </button>
-          </div>
-          <div>
-            <a href={browser.runtime.getURL('options.html')} target="_blank" rel="noopener noreferrer">
-              Settings
-            </a>
-          </div>
-        </Fragment>
-      );
+      secondsLeft = secondsLeft > 0 ? secondsLeft : 0;
     }
 
     return (
       <div id="app-root" style={{ width: 250, height: 400 }}>
         <h1>Flow</h1>
-        { content }
+        <div>
+          <button type="button" onClick={this.blockWebsite}>
+            Add to blacklist
+          </button>
+          <button type="button" onClick={this.setPomodoro}>
+            Pomodoro 30 minutes
+          </button>
+        </div>
+        <div>{`Seconds left: ${secondsLeft}`}</div>
+        <div>
+          <a href={browser.runtime.getURL('options.html')} target="_blank" rel="noopener noreferrer">
+            Settings
+          </a>
+        </div>
       </div>
     );
   }
