@@ -1,6 +1,7 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const BUILD_DIR = path.resolve(__dirname, 'dist');
 const SRC_DIR = path.resolve(__dirname, 'src');
@@ -35,7 +36,26 @@ module.exports = {
           },
           {
             loader: 'eslint-loader',
-          }
+          },
+        ],
+      },
+      {
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              ident: 'postcss',
+              plugins: [
+                // eslint-disable-next-line global-require
+                require('tailwindcss')('./tailwind.config.js'),
+                // eslint-disable-next-line global-require
+                require('autoprefixer'),
+              ],
+            }
+          },
         ],
       },
     ],
@@ -46,6 +66,10 @@ module.exports = {
       // if this is set to true
       cleanStaleWebpackAssets: false,
       verbose: true,
+    }),
+    new MiniCssExtractPlugin({
+      filename: '[name].css',
+      chunkFilename: '[name].css',
     }),
     new CopyPlugin([
       { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js' },

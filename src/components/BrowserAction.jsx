@@ -50,22 +50,30 @@ export default class BrowserAction extends Component {
     }
 
     return (
-      <div id="app-root" style={{ width: 250, height: 400 }}>
-        <h1>Flow</h1>
-        <div>
-          <button type="button" onClick={this.blockWebsite}>
-            Add to blacklist
-          </button>
-          <button type="button" onClick={this.setPomodoro}>
-            Pomodoro 30 minutes
-          </button>
-        </div>
-        <div>{`Seconds left: ${secondsLeft}`}</div>
-        <div>
-          <a href={browser.runtime.getURL('options.html')} target="_blank" rel="noopener noreferrer">
-            Settings
-          </a>
-        </div>
+      <div id="app-root w-40">
+        <main className="container">
+          <h1 className="text-2xl font-semibold text-center">Flow</h1>
+          <div className="flex justify-center flex-col">
+            <button type="button" onClick={this.blockWebsite} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4">
+              Add to blacklist
+            </button>
+            <button type="button" onClick={this.setPomodoro} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4">
+              Pomodoro 30 minutes
+            </button>
+          </div>
+          <div className="text-center text-bold">
+            {`Seconds left: ${secondsLeft}`}
+          </div>
+          <div className="text-center underline">
+            <a
+              href={browser.runtime.getURL('options.html')}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              settings
+            </a>
+          </div>
+        </main>
       </div>
     );
   }
