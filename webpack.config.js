@@ -68,8 +68,8 @@ module.exports = {
       verbose: true,
     }),
     new MiniCssExtractPlugin({
-      filename: '[name].css',
-      chunkFilename: '[name].css',
+      filename: 'main.css',
+      chunkFilename: 'main.css',
     }),
     new CopyPlugin([
       { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js' },

@@ -5,7 +5,7 @@ export default class BrowserAction extends Component {
     super(props);
     this.state = {
       initialized: false,
-      pomodoroFinishTimestamp: Math.floor(Date.now() / 1000),
+      pomodoroFinishTimestamp: Date.now(),
     };
   }
 
@@ -38,13 +38,13 @@ export default class BrowserAction extends Component {
   setPomodoro = async () => {
     browser.runtime.sendMessage({
       type: 'pomodoro.set',
-      params: 10,
+      params: 30,
     });
   };
 
   render() {
     const { initialized, pomodoroFinishTimestamp } = this.state;
-    let secondsLeft = pomodoroFinishTimestamp - Math.floor(Date.now() / 1000);
+    let secondsLeft = Math.floor((pomodoroFinishTimestamp - Date.now()) / 1000);
     if (initialized) {
       secondsLeft = secondsLeft > 0 ? secondsLeft : 0;
     }
