@@ -1,5 +1,13 @@
 import { h } from 'preact';
 
 export default function BrowserAction() {
-  return <div id="app-root"><h1>Blocked page</h1></div>;
+  return (
+    <div id="app-root">
+      <main className="container">
+        <div className="flex justify-center">
+          <img src="https://dummyimage.com/600x400/f20e56/fff.jpg&text=This+website+is+blocked" alt="blocked website" />
+        </div>
+      </main>
+    </div>
+  );
 }

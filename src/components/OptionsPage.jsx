@@ -23,18 +23,6 @@ export default class BrowserAction extends Component {
     });
   }
 
-  blockWebsite = async () => {
-    const tabs = await browser.tabs.query({ active: true });
-    if (tabs.length === 0) {
-      return;
-    }
-
-    browser.runtime.sendMessage({
-      type: 'blacklist.add',
-      params: tabs[0].url,
-    });
-  };
-
   render() {
     const { initialized, blacklist } = this.state;
     let content = (
@@ -45,18 +33,26 @@ export default class BrowserAction extends Component {
 
     if (initialized) {
       content = (
-        <Fragment>
+        <div className="flex items-center flex-col">
+          <h3>Blacklist</h3>
           <ul>
-            { blacklist.map((hostname) => (<li>{hostname}</li>)) }
+            { blacklist.map((hostname) => (
+              <li className="space-x-2">
+                <span>{hostname}</span>
+                <button type="button" className="bg-red-500 px-1 text-white">delete</button>
+              </li>
+            )) }
           </ul>
-        </Fragment>
+        </div>
       );
     }
 
     return (
-      <div id="app-root" style={{ width: 250, height: 400 }}>
-        <h1>Flow options</h1>
-        { content }
+      <div id="app-root">
+        <main className="container">
+          <h1 className="text-2xl font-semibold text-center">Flow</h1>
+          { content }
+        </main>
       </div>
     );
   }
