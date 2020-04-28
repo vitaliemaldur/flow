@@ -2,7 +2,8 @@
 class BlockEngine {
   constructor() {
     this.blacklist = new Set();
-    this.pomodoroFinishTimestamp = Math.floor(Date.now() / 1000);
+    this.pomodoroFinishTimestamp = Date.now();
+    this.pomodoroSetTimeoutId = null;
     this.redirectUrl = browser.runtime.getURL('blocked-page.html');
   }
 
@@ -18,7 +19,7 @@ class BlockEngine {
   }
 
   async startBlocking() {
-    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const currentTimestamp = Date.now();
     if (currentTimestamp >= this.pomodoroFinishTimestamp) {
       return;
     }
@@ -49,13 +50,14 @@ class BlockEngine {
     );
 
     // remove listener after pomodoro is finished
-    setTimeout(() => {
+    clearTimeout(this.pomodoroSetTimeoutId);
+    this.pomodoroSetTimeoutId = setTimeout(() => {
       browser.webRequest.onBeforeRequest.removeListener(this.redirectListener);
-    }, (this.pomodoroFinishTimestamp - currentTimestamp) * 1000);
+    }, this.pomodoroFinishTimestamp - currentTimestamp);
   }
 
   async startPomodoro(durationInMinutes) {
-    this.pomodoroFinishTimestamp = Math.floor(Date.now() / 1000) + durationInMinutes * 60;
+    this.pomodoroFinishTimestamp = Date.now() + durationInMinutes * 60 * 1000;
     await browser.storage.local.set({ pomodoro: this.pomodoroFinishTimestamp });
     await this.startBlocking();
   }
@@ -66,6 +68,7 @@ class BlockEngine {
     if (parsedUrl.hostname && parsedUrl.hostname.length > 0) {
       this.blacklist.add(parsedUrl.hostname);
       await browser.storage.local.set({ blacklist: Array.from(this.blacklist) });
+      await this.startBlocking();
     } else {
       throw new Error('Invalid URL');
     }
