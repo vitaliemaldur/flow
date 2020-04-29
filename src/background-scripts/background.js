@@ -24,10 +24,6 @@ class BlockEngine {
       return;
     }
 
-    if (this.blacklist.size === 0) {
-      return;
-    }
-
     const patterns = [];
     this.blacklist.forEach((hostname) => {
       patterns.push(`*://${hostname}/*`);
@@ -43,17 +39,22 @@ class BlockEngine {
 
     // block navigation to websites
     browser.webRequest.onBeforeRequest.removeListener(this.redirectListener);
-    browser.webRequest.onBeforeRequest.addListener(
-      this.redirectListener,
-      { urls: patterns, types: ['main_frame'] },
-      ['blocking'],
-    );
+    if (patterns.length > 0) {
+      browser.webRequest.onBeforeRequest.addListener(
+        this.redirectListener,
+        {
+          urls: patterns,
+          types: ['main_frame'],
+        },
+        ['blocking'],
+      );
 
-    // remove listener after pomodoro is finished
-    clearTimeout(this.pomodoroSetTimeoutId);
-    this.pomodoroSetTimeoutId = setTimeout(() => {
-      browser.webRequest.onBeforeRequest.removeListener(this.redirectListener);
-    }, this.pomodoroFinishTimestamp - currentTimestamp);
+      // remove listener after pomodoro is finished
+      clearTimeout(this.pomodoroSetTimeoutId);
+      this.pomodoroSetTimeoutId = setTimeout(() => {
+        browser.webRequest.onBeforeRequest.removeListener(this.redirectListener);
+      }, this.pomodoroFinishTimestamp - currentTimestamp);
+    }
   }
 
   async startPomodoro(durationInMinutes) {
@@ -62,11 +63,22 @@ class BlockEngine {
     await this.startBlocking();
   }
 
-  async blockWebsite(url) {
+  async blacklistAdd(url) {
     const parsedUrl = new URL(url);
     // save new url
     if (parsedUrl.hostname && parsedUrl.hostname.length > 0) {
       this.blacklist.add(parsedUrl.hostname);
+      await browser.storage.local.set({ blacklist: Array.from(this.blacklist) });
+      await this.startBlocking();
+    } else {
+      throw new Error('Invalid URL');
+    }
+  }
+
+  async blacklistRemove(hostname) {
+    // save new url
+    if (typeof hostname === 'string') {
+      this.blacklist.delete(hostname);
       await browser.storage.local.set({ blacklist: Array.from(this.blacklist) });
       await this.startBlocking();
     } else {
@@ -86,7 +98,10 @@ browser.runtime.onMessage.addListener(
     try {
       switch (data.type) {
         case 'blacklist.add':
-          engine.blockWebsite(data.params);
+          engine.blacklistAdd(data.params);
+          break;
+        case 'blacklist.remove':
+          engine.blacklistRemove(data.params);
           break;
         case 'pomodoro.set':
           engine.startPomodoro(data.params);

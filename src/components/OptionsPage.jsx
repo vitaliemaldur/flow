@@ -23,6 +23,14 @@ export default class BrowserAction extends Component {
     });
   }
 
+  removeFromBlacklist = (hostname) => {
+    console.log('remove hostname', hostname);
+    browser.runtime.sendMessage({
+      type: 'blacklist.remove',
+      params: hostname,
+    });
+  };
+
   render() {
     const { initialized, blacklist } = this.state;
     let content = (
@@ -39,7 +47,13 @@ export default class BrowserAction extends Component {
             { blacklist.map((hostname) => (
               <li className="space-x-2">
                 <span>{hostname}</span>
-                <button type="button" className="bg-red-500 px-1 text-white">delete</button>
+                <button
+                  type="button"
+                  className="bg-red-500 px-1 text-white"
+                  onClick={() => { this.removeFromBlacklist(hostname); }}
+                >
+                  delete
+                </button>
               </li>
             )) }
           </ul>
