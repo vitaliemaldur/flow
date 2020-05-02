@@ -40,9 +40,17 @@ module.exports = {
         ],
       },
       {
-        test: /\.css$/,
+        test: /\.(png|jpe?g|gif)$/i,
         use: [
-          MiniCssExtractPlugin.loader,
+          {
+            loader: 'file-loader',
+          },
+        ],
+      },
+      {
+        test: /\.(scss)$/,
+        use: [
+          'style-loader',
           'css-loader',
           {
             loader: 'postcss-loader',
@@ -50,11 +58,12 @@ module.exports = {
               ident: 'postcss',
               plugins: [
                 // eslint-disable-next-line global-require
-                require('tailwindcss')('./tailwind.config.js'),
-                // eslint-disable-next-line global-require
                 require('autoprefixer'),
               ],
             }
+          },
+          {
+            loader: 'sass-loader', // compiles Sass to CSS
           },
         ],
       },
@@ -66,10 +75,6 @@ module.exports = {
       // if this is set to true
       cleanStaleWebpackAssets: false,
       verbose: true,
-    }),
-    new MiniCssExtractPlugin({
-      filename: 'main.css',
-      chunkFilename: 'main.css',
     }),
     new CopyPlugin([
       { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js' },

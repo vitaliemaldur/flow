@@ -24,7 +24,6 @@ export default class BrowserAction extends Component {
   }
 
   removeFromBlacklist = (hostname) => {
-    console.log('remove hostname', hostname);
     browser.runtime.sendMessage({
       type: 'blacklist.remove',
       params: hostname,

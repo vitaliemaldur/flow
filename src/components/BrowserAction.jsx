@@ -1,78 +1,102 @@
-import { h, Component } from 'preact';
+import { h, Component, Fragment } from 'preact';
+import addDocument from '../assets/images/add-document.png';
+import readingTime from '../assets/images/reading-time.png';
 
 export default class BrowserAction extends Component {
   constructor(props) {
     super(props);
     this.state = {
       initialized: false,
-      pomodoroFinishTimestamp: Date.now(),
+      blacklist: [],
+      currentURL: null,
     };
   }
 
   async componentDidMount() {
-    const result = await browser.storage.local.get('pomodoro');
+    const [tabs, storageResult] = await Promise.all([
+      browser.tabs.query({ active: true }),
+      browser.storage.local.get('blacklist'),
+    ]);
+
     this.setState({
       initialized: true,
-      pomodoroFinishTimestamp: result.pomodoro,
+      blacklist: storageResult.blacklist || [],
+      currentURL: tabs.length > 0 ? tabs[0].url : null,
     });
 
     browser.storage.onChanged.addListener((changes, area) => {
-      if (area === 'local' && changes.pomodoro) {
-        this.setState({ pomodoroFinishTimestamp: changes.pomodoro.newValue });
+      if (area === 'local' && changes.blacklist) {
+        this.setState({ blacklist: changes.blacklist.newValue });
       }
     });
   }
 
-  blockWebsite = async () => {
-    const tabs = await browser.tabs.query({ active: true });
-    if (tabs.length === 0) {
-      return;
-    }
+  blacklistAdd = async () => {
+    const { currentURL } = this.state;
     // TODO: validate URL
     browser.runtime.sendMessage({
       type: 'blacklist.add',
-      params: tabs[0].url,
+      params: currentURL,
     });
   };
 
-  setPomodoro = async () => {
+  blacklistRemove = async () => {
+    const { currentURL } = this.state;
+    // TODO: validate URL
+    const parsedURL = new URL(currentURL);
     browser.runtime.sendMessage({
-      type: 'pomodoro.set',
-      params: 30,
+      type: 'blacklist.remove',
+      params: parsedURL.host,
     });
   };
 
   render() {
-    const { initialized, pomodoroFinishTimestamp } = this.state;
-    let secondsLeft = Math.floor((pomodoroFinishTimestamp - Date.now()) / 1000);
-    if (initialized) {
-      secondsLeft = secondsLeft > 0 ? secondsLeft : 0;
+    const { initialized, currentURL, blacklist } = this.state;
+    if (!initialized) {
+      return 'Loading';
     }
 
+    const parsedURL = new URL(currentURL);
+    const isBlocked = blacklist.indexOf(parsedURL.host) > -1;
+
     return (
-      <div id="app-root w-40">
+      <div style={{ width: 250, height: 280 }}>
+        <nav className="navbar navbar-dark bg-dark">
+          <span className="navbar-brand mb-0 h1">Flow</span>
+          <ul className="navbar-nav">
+            <li className="nav-item">
+              <a
+                className="nav-link"
+                href={browser.runtime.getURL('options.html')}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                settings
+              </a>
+            </li>
+          </ul>
+        </nav>
         <main className="container">
-          <h1 className="text-2xl font-semibold text-center">Flow</h1>
-          <div className="flex justify-center flex-col">
-            <button type="button" onClick={this.blockWebsite} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4">
-              Add to blacklist
-            </button>
-            <button type="button" onClick={this.setPomodoro} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4">
-              Pomodoro 30 minutes
-            </button>
-          </div>
-          <div className="text-center text-bold">
-            {`Seconds left: ${secondsLeft}`}
-          </div>
-          <div className="text-center underline">
-            <a
-              href={browser.runtime.getURL('options.html')}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              settings
-            </a>
-          </div>
+          {
+            !isBlocked && (
+              <Fragment>
+                <img src={addDocument} className="img-fluid" alt="Website placeholder" />
+                <button type="button" onClick={this.blacklistAdd} className="btn btn-primary btn-block">
+                  Add to blacklist
+                </button>
+              </Fragment>
+            )
+          }
+          {
+            isBlocked && (
+              <Fragment>
+                <img src={readingTime} className="img-fluid" alt="Website placeholder" />
+                <button type="button" onClick={this.blacklistRemove} className="btn btn-danger btn-block">
+                  Remove from blacklist
+                </button>
+              </Fragment>
+            )
+          }
         </main>
       </div>
     );
