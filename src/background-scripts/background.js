@@ -2,8 +2,6 @@
 class BlockEngine {
   constructor() {
     this.blacklist = new Set();
-    this.pomodoroFinishTimestamp = Date.now();
-    this.pomodoroSetTimeoutId = null;
     this.redirectUrl = browser.runtime.getURL('blocked-page.html');
   }
 
@@ -12,30 +10,18 @@ class BlockEngine {
   })
 
   async init() {
-    const result = await browser.storage.local.get(['blacklist', 'pomodoro']);
-    this.pomodoroFinishTimestamp = result.pomodoro || this.pomodoroFinishTimestamp;
+    const result = await browser.storage.local.get(['blacklist']);
     this.blacklist = new Set(result.blacklist) || this.blacklist;
     await this.startBlocking();
   }
 
   async startBlocking() {
-    const currentTimestamp = Date.now();
-    if (currentTimestamp >= this.pomodoroFinishTimestamp) {
-      return;
-    }
-
     const patterns = [];
     this.blacklist.forEach((hostname) => {
       patterns.push(`*://${hostname}/*`);
       patterns.push(`*://m.${hostname}/*`);
       patterns.push(`*://www.${hostname}/*`);
     });
-
-    // apply to all tabs
-    const tabs = await browser.tabs.query({ url: patterns });
-    tabs.forEach((tab) => (
-      browser.tabs.update(tab.id, { url: this.redirectUrl })
-    ));
 
     // block navigation to websites
     browser.webRequest.onBeforeRequest.removeListener(this.redirectListener);
@@ -49,18 +35,12 @@ class BlockEngine {
         ['blocking'],
       );
 
-      // remove listener after pomodoro is finished
-      clearTimeout(this.pomodoroSetTimeoutId);
-      this.pomodoroSetTimeoutId = setTimeout(() => {
-        browser.webRequest.onBeforeRequest.removeListener(this.redirectListener);
-      }, this.pomodoroFinishTimestamp - currentTimestamp);
+      // apply to all tabs
+      const tabs = await browser.tabs.query({ url: patterns });
+      tabs.forEach((tab) => (
+        browser.tabs.update(tab.id, { url: this.redirectUrl })
+      ));
     }
-  }
-
-  async startPomodoro(durationInMinutes) {
-    this.pomodoroFinishTimestamp = Date.now() + durationInMinutes * 60 * 1000;
-    await browser.storage.local.set({ pomodoro: this.pomodoroFinishTimestamp });
-    await this.startBlocking();
   }
 
   async blacklistAdd(url) {
@@ -102,9 +82,6 @@ browser.runtime.onMessage.addListener(
           break;
         case 'blacklist.remove':
           engine.blacklistRemove(data.params);
-          break;
-        case 'pomodoro.set':
-          engine.startPomodoro(data.params);
           break;
         default:
           break;
