@@ -40,30 +40,29 @@ export default class BrowserAction extends Component {
 
     if (initialized) {
       content = (
-        <div className="flex items-center flex-col">
-          <h3>Blacklist</h3>
-          <ul>
+        <Fragment>
+          <h3 className="text-center">Blacklist</h3>
+          <ul className="list-group">
             { blacklist.map((hostname) => (
-              <li className="space-x-2">
-                <span>{hostname}</span>
+              <li className="list-group-item">
                 <button
                   type="button"
-                  className="bg-red-500 px-1 text-white"
+                  className="btn btn-danger btn-sm"
                   onClick={() => { this.removeFromBlacklist(hostname); }}
                 >
                   delete
                 </button>
+                <span className="ml-1">{hostname}</span>
               </li>
             )) }
           </ul>
-        </div>
+        </Fragment>
       );
     }
 
     return (
       <div id="app-root">
         <main className="container">
-          <h1 className="text-2xl font-semibold text-center">Flow</h1>
           { content }
         </main>
       </div>
