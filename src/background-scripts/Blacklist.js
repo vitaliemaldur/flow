@@ -3,13 +3,33 @@ const DEFAULT_PAUSED_TIMESTAMP = 0;
 export default class Blacklist {
   constructor() {
     this.blocked = new Map();
+    this.timeoutMap = new Map();
+    this.pauseExpiredCallback = null;
   }
 
-  async init() {
+  async init(pauseExpiredCallback) {
     const result = await browser.storage.local.get(['blacklist']);
     if (result.blacklist) {
       this.blocked = new Map(Object.entries(result.blacklist));
     }
+
+    if (pauseExpiredCallback) {
+      this.pauseExpiredCallback = pauseExpiredCallback;
+    }
+
+    const timestamp = Date.now();
+    this.blocked.forEach((value, host) => {
+      if (value.paused > timestamp) {
+        this.setTimeoutCallback(host, value.paused - timestamp);
+      }
+    });
+  }
+
+  setTimeoutCallback(host, timeout) {
+    if (this.timeoutMap.has(host)) {
+      clearTimeout(this.timeoutMap.get(host));
+    }
+    this.timeoutMap.set(host, setTimeout(() => (this.pauseExpiredCallback(host)), timeout));
   }
 
   async syncStorage() {
@@ -38,6 +58,7 @@ export default class Blacklist {
       const value = this.blocked.get(parsedURL.host);
       value.paused = Date.now() + minutes * 60 * 1000;
       this.blocked.set(parsedURL.host, value);
+      this.setTimeoutCallback(parsedURL.host, minutes * 60 * 1000);
       await this.syncStorage();
     }
   }

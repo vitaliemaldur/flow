@@ -19,7 +19,7 @@ class BlockEngine {
   };
 
   async init() {
-    await this.blacklist.init();
+    await this.blacklist.init(this.updateAllTabs);
     await this.updateAllTabs();
     browser.webRequest.onBeforeRequest.addListener(
       this.redirectListener,
@@ -31,7 +31,7 @@ class BlockEngine {
     });
   }
 
-  async updateAllTabs() {
+  updateAllTabs = async () => {
     const patterns = this.blacklist.allBlocked().map((host) => `*://${host}/*`);
     if (patterns.length > 0) {
       const tabs = await browser.tabs.query({
@@ -42,16 +42,16 @@ class BlockEngine {
         browser.tabs.update(tab.id, { url: this.redirectUrl });
       });
     }
-  }
+  };
 
-  restoreAllTabs(host) {
+  restoreAllTabs = (host) => {
     this.pageMap.forEach((value, tabId) => {
       const parsedURL = new URL(value.initialURL);
       if (parsedURL.host === host) {
         browser.tabs.update(tabId, { url: value.initialURL });
       }
     });
-  }
+  };
 
   async blacklistAdd(url) {
     await this.blacklist.add(url);
