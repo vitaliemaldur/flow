@@ -3,13 +3,11 @@ import Blacklist from './Blacklist';
 class BlockEngine {
   constructor() {
     this.blacklist = new Blacklist();
-    this.pageMap = new Map();
     this.redirectUrl = browser.runtime.getURL('blocked-page.html');
   }
 
   redirectListener = (details) => {
     if (this.blacklist.isBlocked(details.url)) {
-      this.pageMap.set(details.tabId, { initialURL: details.url });
       return {
         redirectUrl: `${this.redirectUrl}?url=${window.btoa(details.url)}`,
       };
@@ -26,9 +24,6 @@ class BlockEngine {
       { types: ['main_frame'], urls: ['<all_urls>'] },
       ['blocking'],
     );
-    browser.tabs.onRemoved.addListener((tabId) => {
-      this.pageMap.delete(tabId);
-    });
   }
 
   updateAllTabs = async () => {
@@ -38,17 +33,24 @@ class BlockEngine {
         url: patterns,
       });
       tabs.forEach((tab) => {
-        this.pageMap.set(tab.id, { initialURL: tab.url });
-        browser.tabs.update(tab.id, { url: `${this.redirectUrl}?url=${window.btoa(tab.url)}` });
+        browser.tabs.update(tab.id, {
+          url: `${this.redirectUrl}?url=${window.btoa(tab.url)}`,
+        });
       });
     }
   };
 
-  restoreAllTabs = (host) => {
-    this.pageMap.forEach((value, tabId) => {
-      const parsedURL = new URL(value.initialURL);
-      if (parsedURL.host === host) {
-        browser.tabs.update(tabId, { url: value.initialURL });
+  restoreAllTabs = async (host) => {
+    const tabs = await browser.tabs.query({});
+
+    tabs.filter(
+      (tab) => tab.url.startsWith(this.redirectUrl),
+    ).forEach((tab) => {
+      const parsedURL = new URL(tab.url);
+      const url = window.atob(parsedURL.searchParams.get('url'));
+      const parsedBlockedURL = new URL(url);
+      if (parsedBlockedURL.host === host) {
+        browser.tabs.update(tab.id, { url });
       }
     });
   };
@@ -60,13 +62,13 @@ class BlockEngine {
 
   async blacklistRemove(host) {
     await this.blacklist.remove(`http://${host}/`);
-    this.restoreAllTabs();
+    await this.restoreAllTabs(host);
   }
 
   async whitelistAdd(url, minutes) {
     await this.blacklist.pause(url, minutes);
     const parsedURL = new URL(url);
-    this.restoreAllTabs(parsedURL.host);
+    await this.restoreAllTabs(parsedURL.host);
   }
 }
 
