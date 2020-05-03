@@ -11,7 +11,7 @@ class BlockEngine {
     if (this.blacklist.isBlocked(details.url)) {
       this.pageMap.set(details.tabId, { initialURL: details.url });
       return {
-        redirectUrl: this.redirectUrl,
+        redirectUrl: `${this.redirectUrl}?url=${window.btoa(details.url)}`,
       };
     }
 
@@ -39,7 +39,7 @@ class BlockEngine {
       });
       tabs.forEach((tab) => {
         this.pageMap.set(tab.id, { initialURL: tab.url });
-        browser.tabs.update(tab.id, { url: this.redirectUrl });
+        browser.tabs.update(tab.id, { url: `${this.redirectUrl}?url=${window.btoa(tab.url)}` });
       });
     }
   };
@@ -63,13 +63,10 @@ class BlockEngine {
     this.restoreAllTabs();
   }
 
-  async whitelistAdd(tabId, minutes) {
-    if (this.pageMap.has(tabId)) {
-      const { initialURL } = this.pageMap.get(tabId);
-      await this.blacklist.pause(initialURL, minutes);
-      const parsedURL = new URL(initialURL);
-      this.restoreAllTabs(parsedURL.host);
-    }
+  async whitelistAdd(url, minutes) {
+    await this.blacklist.pause(url, minutes);
+    const parsedURL = new URL(url);
+    this.restoreAllTabs(parsedURL.host);
   }
 }
 

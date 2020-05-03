@@ -2,15 +2,14 @@ import { h, Component } from 'preact';
 
 export default class BrowserAction extends Component {
   whitelistAdd = async (minutes) => {
-    const tabs = await browser.tabs.query({ active: true });
-    if (tabs.length === 0) {
-      return;
+    const parsedURL = new URL(window.location.href);
+    const blockedURL = parsedURL.searchParams.get('url');
+    if (blockedURL) {
+      browser.runtime.sendMessage({
+        type: 'whitelist.add',
+        params: [window.atob(blockedURL), minutes],
+      });
     }
-
-    browser.runtime.sendMessage({
-      type: 'whitelist.add',
-      params: [tabs[0].id, minutes],
-    });
   };
 
   render() {
