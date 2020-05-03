@@ -7,7 +7,7 @@ export default class BrowserAction extends Component {
     super(props);
     this.state = {
       initialized: false,
-      blacklist: [],
+      blacklist: {},
       currentURL: null,
     };
   }
@@ -20,7 +20,7 @@ export default class BrowserAction extends Component {
 
     this.setState({
       initialized: true,
-      blacklist: storageResult.blacklist || [],
+      blacklist: storageResult.blacklist || {},
       currentURL: tabs.length > 0 ? tabs[0].url : null,
     });
 
@@ -57,7 +57,7 @@ export default class BrowserAction extends Component {
     }
 
     const parsedURL = new URL(currentURL);
-    const isBlocked = blacklist.indexOf(parsedURL.host) > -1;
+    const isBlocked = Object.prototype.hasOwnProperty.call(blacklist, parsedURL.host);
 
     return (
       <div style={{ width: 250, height: 280 }}>

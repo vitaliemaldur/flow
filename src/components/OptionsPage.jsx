@@ -5,7 +5,7 @@ export default class BrowserAction extends Component {
     super(props);
     this.state = {
       initialized: false,
-      blacklist: [],
+      blacklist: {},
     };
   }
 
@@ -13,7 +13,7 @@ export default class BrowserAction extends Component {
     const result = await browser.storage.local.get('blacklist');
     this.setState({
       initialized: true,
-      blacklist: result.blacklist || [],
+      blacklist: result.blacklist || {},
     });
 
     browser.storage.onChanged.addListener((changes, area) => {
@@ -43,7 +43,7 @@ export default class BrowserAction extends Component {
         <Fragment>
           <h3 className="text-center">Blacklist</h3>
           <ul className="list-group">
-            { blacklist.map((hostname) => (
+            { Object.keys(blacklist).map((hostname) => (
               <li className="list-group-item">
                 <button
                   type="button"
