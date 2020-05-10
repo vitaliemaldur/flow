@@ -12,6 +12,11 @@ export default class BrowserAction extends Component {
     }
   };
 
+  closeTab = async () => {
+    const tab = await browser.tabs.getCurrent();
+    await browser.tabs.remove(tab.id);
+  };
+
   render() {
     return (
       <div>
@@ -30,9 +35,18 @@ export default class BrowserAction extends Component {
                     <button
                       type="button"
                       className="btn btn-primary btn-block"
-                      onClick={() => (window.close())}
+                      onClick={this.closeTab}
                     >
-                      Keep working
+                      Close this tab
+                    </button>
+                  </div>
+                  <div className="col-sm-12 m-1">
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-block"
+                      onClick={() => (this.whitelistAdd(1))}
+                    >
+                      Pause for 1 minute
                     </button>
                   </div>
                   <div className="col-sm-12 m-1">
@@ -42,15 +56,6 @@ export default class BrowserAction extends Component {
                       onClick={() => (this.whitelistAdd(5))}
                     >
                       Pause for 5 minutes
-                    </button>
-                  </div>
-                  <div className="col-sm-12 m-1">
-                    <button
-                      type="button"
-                      className="btn btn-danger btn-block"
-                      onClick={() => (this.whitelistAdd(10))}
-                    >
-                      Pause for 10 minutes
                     </button>
                   </div>
                 </div>
