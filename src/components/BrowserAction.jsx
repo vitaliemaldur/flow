@@ -1,6 +1,7 @@
 import { h, Component, Fragment } from 'preact';
 import addDocument from '../assets/images/add-document.png';
 import readingTime from '../assets/images/reading-time.png';
+import SettingsIcon from '../assets/images/settings-icon.svg';
 
 export default class BrowserAction extends Component {
   constructor(props) {
@@ -71,7 +72,7 @@ export default class BrowserAction extends Component {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                settings
+                <SettingsIcon />
               </a>
             </li>
           </ul>

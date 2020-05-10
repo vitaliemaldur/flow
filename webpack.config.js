@@ -1,12 +1,12 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const BUILD_DIR = path.resolve(__dirname, 'dist');
 const SRC_DIR = path.resolve(__dirname, 'src');
 
 module.exports = {
+  devtool: 'source-map',
   entry: {
     background: `${SRC_DIR}/background-scripts/background.js`,
     options: `${SRC_DIR}/options/index.jsx`,
@@ -48,6 +48,10 @@ module.exports = {
         ],
       },
       {
+        test: /\.svg$/,
+        use: ['@svgr/webpack'],
+      },
+      {
         test: /\.(scss)$/,
         use: [
           'style-loader',
@@ -60,7 +64,7 @@ module.exports = {
                 // eslint-disable-next-line global-require
                 require('autoprefixer'),
               ],
-            }
+            },
           },
           {
             loader: 'sass-loader', // compiles Sass to CSS
@@ -87,8 +91,9 @@ module.exports = {
   ],
   resolve: {
     alias: {
-      react: 'preact-compat',
-      'react-dom': 'preact-compat',
+      react: 'preact/compat',
+      'react-dom/test-utils': 'preact/test-utils',
+      'react-dom': 'preact/compat',
     },
     extensions: ['.js', '.jsx'],
   },
